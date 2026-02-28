@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2018 - 2024 by the IBAMR developers
+// Copyright (c) 2018 - 2025 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -83,17 +83,12 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
     // Get boundary information.
     std::vector<dof_id_type> nodes;
     std::vector<boundary_id_type> bcs;
-    // new API in 1.4.0
-#if LIBMESH_VERSION_LESS_THAN(1, 4, 0)
-    boundary_info.build_node_list(nodes, bcs);
-#else
     const std::vector<std::tuple<dof_id_type, boundary_id_type> > node_list = boundary_info.build_node_list();
     for (const std::tuple<dof_id_type, boundary_id_type>& pair : node_list)
     {
         nodes.push_back(std::get<0>(pair));
         bcs.push_back(std::get<1>(pair));
     }
-#endif
 
     // Check to make sure there are node sets to work with.
     if (nodes.size() == 0 || bcs.size() == 0 || (nodes.size() != bcs.size()))
@@ -264,9 +259,15 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
             elem->set_id(i);
             // libMesh will delete elem
             elem = d_meter_meshes[meter_idx]->add_elem(elem);
+#if LIBMESH_VERSION_LESS_THAN(1, 9, 0)
             elem->set_node(0) = d_meter_meshes[meter_idx]->node_ptr(d_num_perim_nodes[meter_idx]);
             elem->set_node(1) = d_meter_meshes[meter_idx]->node_ptr(i);
             elem->set_node(2) = d_meter_meshes[meter_idx]->node_ptr((i + 1) % d_num_perim_nodes[meter_idx]);
+#else
+            elem->set_node(0, d_meter_meshes[meter_idx]->node_ptr(d_num_perim_nodes[meter_idx]));
+            elem->set_node(1, d_meter_meshes[meter_idx]->node_ptr(i));
+            elem->set_node(2, d_meter_meshes[meter_idx]->node_ptr((i + 1) % d_num_perim_nodes[meter_idx]));
+#endif
         }
         d_meter_meshes[meter_idx]->allow_renumbering(false);
         d_meter_meshes[meter_idx]->prepare_for_use();

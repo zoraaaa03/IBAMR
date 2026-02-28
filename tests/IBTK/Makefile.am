@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2019 - 2023 by the IBAMR developers
+## Copyright (c) 2019 - 2025 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -22,7 +22,8 @@ ghost_accumulation_01_2d ghost_accumulation_01_3d ghost_indices_01_2d \
 ghost_indices_01_3d ibtk_init hierarchy_callbacks ibtk_mpi equal_eps helmholtz_2d \
 helmholtz_3d secondary_hierarchy_01_2d child_integrators_2d version_macros \
 snapshot_cache_01_2d hierarchy_avg_data_01_2d nodal_interpolation_01_2d nodal_interpolation_01_3d \
-curl_01_2d curl_01_3d marker_points_01_2d marker_points_02_2d
+curl_01_2d curl_01_3d marker_points_01_2d marker_points_02_2d interpolation_utilities_2d \
+interpolation_utilities_3d restart_cleaner_function_test restart_cleaner_interface_test
 
 if LIBMESH_ENABLED
 EXTRA_PROGRAMS += elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
@@ -265,6 +266,22 @@ snapshot_cache_01_2d_SOURCES = snapshot_cache_01.cpp
 hierarchy_avg_data_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 hierarchy_avg_data_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 hierarchy_avg_data_01_2d_SOURCES = hierarchy_avg_data_01.cpp
+
+interpolation_utilities_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+interpolation_utilities_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+interpolation_utilities_2d_SOURCES = interpolation_utilities.cpp
+
+interpolation_utilities_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+interpolation_utilities_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+interpolation_utilities_3d_SOURCES = interpolation_utilities.cpp
+
+restart_cleaner_function_test_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
+restart_cleaner_function_test_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+restart_cleaner_function_test_SOURCES = restart_cleaner_function_test.cpp
+
+restart_cleaner_interface_test_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
+restart_cleaner_interface_test_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+restart_cleaner_interface_test_SOURCES = restart_cleaner_interface_test.cpp
 
 tests: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \

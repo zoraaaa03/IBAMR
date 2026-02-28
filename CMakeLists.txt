@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2020 - 2024 by the IBAMR developers
+## Copyright (c) 2020 - 2025 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -24,6 +24,14 @@ IF("${CMAKE_BINARY_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
           You must delete them, or cmake will refuse to work.")
 ENDIF()
 
+# Version info:
+FILE(STRINGS "${CMAKE_SOURCE_DIR}/VERSION" _version LIMIT_COUNT 1)
+STRING(REGEX REPLACE "^([0-9]+)\\..*" "\\1" IBTK_VERSION_MAJOR "${_version}")
+STRING(REGEX REPLACE "^[0-9]+\\.([0-9]+).*" "\\1" IBTK_VERSION_MINOR "${_version}")
+STRING(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" IBTK_VERSION_SUBMINOR "${_version}")
+SET(IBTK_VERSION ${IBTK_VERSION_MAJOR}.${IBTK_VERSION_MINOR}.${IBTK_VERSION_SUBMINOR})
+SET(IBAMR_VERSION ${IBTK_VERSION})
+
 PROJECT(IBAMR
   DESCRIPTION "Software infrastructure for the IB method with adaptively-refined grids"
   VERSION ${IBAMR_VERSION}
@@ -36,14 +44,6 @@ MESSAGE(STATUS "")
 INCLUDE(GNUInstallDirs)
 INCLUDE(CMakePackageConfigHelpers)
 INCLUDE(CTest)
-
-# Version info:
-FILE(STRINGS "${CMAKE_SOURCE_DIR}/VERSION" _version LIMIT_COUNT 1)
-STRING(REGEX REPLACE "^([0-9]+)\\..*" "\\1" IBTK_VERSION_MAJOR "${_version}")
-STRING(REGEX REPLACE "^[0-9]+\\.([0-9]+).*" "\\1" IBTK_VERSION_MINOR "${_version}")
-STRING(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" IBTK_VERSION_SUBMINOR "${_version}")
-SET(IBTK_VERSION ${IBTK_VERSION_MAJOR}.${IBTK_VERSION_MINOR}.${IBTK_VERSION_SUBMINOR})
-SET(IBAMR_VERSION ${IBTK_VERSION})
 
 # Build tests?
 OPTION(IBAMR_ENABLE_TESTING "Should tests be compiled and configured to run with ctest?" ON)
@@ -396,6 +396,7 @@ ELSE()
 ENDIF()
 IF(${IBAMR_USE_BUNDLED_MUPARSER})
   MESSAGE(STATUS "Setting up muParser as a bundled dependency")
+  INCLUDE(CheckCXXCompilerFlag)
   ADD_LIBRARY(BUNDLED_MUPARSER)
   TARGET_INCLUDE_DIRECTORIES(
     BUNDLED_MUPARSER
@@ -404,6 +405,11 @@ IF(${IBAMR_USE_BUNDLED_MUPARSER})
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/contrib/muparser>)
   SET_PROPERTY(TARGET BUNDLED_MUPARSER PROPERTY CXX_STANDARD ${IBAMR_CXX_STANDARD})
   TARGET_COMPILE_FEATURES(BUNDLED_MUPARSER PUBLIC cxx_std_${IBAMR_CXX_STANDARD})
+
+  CHECK_CXX_COMPILER_FLAG("-Wno-nested-anon-types" _has_no_nested_anon_types_warning_flag)
+  IF(${_has_no_nested_anon_types_warning_flag})
+    TARGET_COMPILE_OPTIONS(BUNDLED_MUPARSER PRIVATE "-Wno-nested-anon-types")
+  ENDIF()
 
   TARGET_SOURCES(BUNDLED_MUPARSER
     PRIVATE
@@ -441,14 +447,22 @@ ELSE()
   MESSAGE(STATUS "MUPARSER_INCLUDE_DIRS: ${MUPARSER_INCLUDE_DIRS}")
   MESSAGE(STATUS "MUPARSER_LIBRARIES: ${MUPARSER_LIBRARIES}")
 
-  FIND_FILE(_muparser_def muParserDef.h HINTS ${MUPARSER_INCLUDE_DIRS} NO_DEFAULT_PAT)
+  FIND_FILE(_muparser_def muParserDef.h HINTS ${MUPARSER_INCLUDE_DIRS} NO_DEFAULT_PATH)
 ENDIF()
 
 # muParser version info:
 FILE(STRINGS "${_muparser_def}" MUPARSER_VERSION_LINE
-  REGEX "#define.*MUP_VERSION")
-STRING(REGEX REPLACE "^ *#.* MUP_VERSION .*\"([0-9.]+)\"" "\\1"
-  MUPARSER_VERSION "${MUPARSER_VERSION_LINE}")
+  REGEX "^[ \t]*#[ \t]*define[ \t]+MUP_VERSION[ \t]*_T")
+# The 2.3 release series encodes the version in a different place
+IF("${MUPARSER_VERSION_LINE}" STREQUAL "")
+  FILE(STRINGS "${_muparser_def}" MUPARSER_VERSION_LINE
+    REGEX "ParserVersion[ \t]*=.*\"[0-9.]+.*\"")
+  STRING(REGEX REPLACE ".*ParserVersion[ \t]*=.*\"([0-9.]+).*\".*" "\\1"
+    MUPARSER_VERSION "${MUPARSER_VERSION_LINE}")
+ELSE()
+  STRING(REGEX REPLACE ".*MUP_VERSION.*\"([0-9.]+)\".*" "\\1"
+    MUPARSER_VERSION "${MUPARSER_VERSION_LINE}")
+ENDIF()
 
 #
 # HDF5:
@@ -467,19 +481,22 @@ ENDIF()
 MESSAGE(STATUS "")
 MESSAGE(STATUS "Setting up HYPRE")
 FIND_PATH(HYPRE_INCLUDE_DIRS REQUIRED NAMES HYPRE.h HINTS ${HYPRE_ROOT}/include /usr/include/hypre)
-MESSAGE(STATUS "HYPRE_INCLUDE_DIRS: ${HYPRE_INCLUDE_DIRS}")
 FIND_LIBRARY(HYPRE_LIBRARIES REQUIRED NAMES HYPRE HINTS ${HYPRE_ROOT}/lib /usr/lib)
-MESSAGE(STATUS "HYPRE_LIBRARIES: ${HYPRE_LIBRARIES}")
 IF(${HYPRE_INCLUDE_DIRS} STREQUAL "HYPRE_INCLUDE_DIRS-NOTFOUND" OR
     ${HYPRE_LIBRARIES} STREQUAL "HYPRE_LIBRARIES-NOTFOUND")
   MESSAGE(FATAL_ERROR "Unable to find a valid HYPRE installation.")
 ENDIF()
 
 # hypre version info:
-FILE(STRINGS "${HYPRE_ROOT}/include/HYPRE_config.h" HYPRE_VERSION_LINE
+FIND_FILE(HYPRE_CONFIG_FILE HYPRE_config.h HINTS ${HYPRE_INCLUDE_DIRS}
+  NO_DEFAULT_PATH)
+FILE(STRINGS "${HYPRE_CONFIG_FILE}" HYPRE_VERSION_LINE
   REGEX "^ *#.*HYPRE_RELEASE_VERSION")
 STRING(REGEX REPLACE "^ *#.* HYPRE_RELEASE_VERSION \"([0-9.]+)\"" "\\1"
   HYPRE_VERSION "${HYPRE_VERSION_LINE}")
+MESSAGE(STATUS "Found HYPRE ${HYPRE_VERSION}")
+MESSAGE(STATUS "HYPRE_LIBRARIES: ${HYPRE_LIBRARIES}")
+MESSAGE(STATUS "HYPRE_INCLUDE_DIRS: ${HYPRE_INCLUDE_DIRS}")
 
 #
 # SAMRAI:
@@ -601,10 +618,22 @@ libMesh, it may have) to NOT use 64 bit indices.")
   STRING(REGEX REPLACE "^PETSC_CC_INCLUDES =(.*)" "\\1" _petsc_raw_includes ${_petsc_raw_includes})
   SEPARATE_ARGUMENTS(_petsc_raw_includes)
   # Get rid of preceding -Is (CMake wants just directory names):
+  SET(PETSC_INCLUDE_DIRS)
   FOREACH(_include ${_petsc_raw_includes})
-    STRING(REGEX REPLACE "^-I" "" _directory "${_include}")
-    LIST(APPEND PETSC_INCLUDE_DIRS ${_directory})
+    STRING(FIND "${_include}" "-I" _include_index)
+    IF("${_include_index}" STREQUAL "0")
+      STRING(REGEX REPLACE "^-I" "" _directory "${_include}")
+      LIST(APPEND PETSC_INCLUDE_DIRS ${_directory})
+
+      IF(NOT IS_DIRECTORY "${_directory}")
+          MESSAGE(WARNING "\
+The PETSc include directory '${_directory}' either does not exist or isn't a \
+directory. While this is not a fatal error, it usually indicates that \
+something is wrong with the PETSc installation.")
+      ENDIF()
+    ENDIF()
   ENDFOREACH()
+  MESSAGE(STATUS "PETSC_INCLUDE_DIRS: ${PETSC_INCLUDE_DIRS}")
 
   FILE(STRINGS ${PETSC_VARIABLES_FILE} PETSC_LIBRARIES REGEX "^PETSC_WITH_EXTERNAL_LIB =.*")
   STRING(REGEX REPLACE "^PETSC_WITH_EXTERNAL_LIB =(.*)" "\\1" PETSC_LIBRARIES ${PETSC_LIBRARIES})
@@ -693,8 +722,18 @@ CMake.")
     # Get rid of preceding -Is (CMake wants just directory names):
     SET(LIBMESH_INCLUDE_DIRS)
     FOREACH(_include ${_libmesh_raw_includes})
-      STRING(REGEX REPLACE "^-I" "" _directory "${_include}")
-      LIST(APPEND LIBMESH_INCLUDE_DIRS ${_directory})
+      STRING(FIND "${_include}" "-I" _include_index)
+      IF("${_include_index}" STREQUAL "0")
+        STRING(REGEX REPLACE "^-I" "" _directory "${_include}")
+        LIST(APPEND LIBMESH_INCLUDE_DIRS ${_directory})
+
+        IF(NOT IS_DIRECTORY "${_directory}")
+          MESSAGE(WARNING "\
+The libMesh include directory '${_directory}' either does not exist or isn't a \
+directory. While this is not a fatal error, it usually indicates that \
+something is wrong with the libMesh installation.")
+        ENDIF()
+      ENDIF()
     ENDFOREACH()
     MESSAGE(STATUS "LIBMESH_INCLUDE_DIRS: ${LIBMESH_INCLUDE_DIRS}")
 

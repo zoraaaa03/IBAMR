@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2023 by the IBAMR developers
+// Copyright (c) 2014 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -46,7 +46,7 @@ static Timer* t_preprocess_integrate_data;
 static Timer* t_postprocess_integrate_data;
 static Timer* t_compute_lagrangian_force;
 // Version of FEMechanicsExplicitIntegrator restart file data.
-const int EXPLICIT_FE_MECHANICS_INTEGRATOR_VERSION = 0;
+const int EXPLICIT_FE_MECHANICS_INTEGRATOR_VERSION = 1;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////

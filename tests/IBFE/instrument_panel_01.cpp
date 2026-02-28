@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2022 - 2024 by the IBAMR developers
+// Copyright (c) 2022 - 2025 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -514,11 +514,7 @@ main(int argc, char** argv)
                     // at data_time = t the bottom face is at z = t and the top face is at z = 1 + t
                     std::unique_ptr<Elem> side_ptr = elem.side_ptr(side_n);
 
-#if LIBMESH_VERSION_LESS_THAN(1, 7, 0)
-                    const double z = side_ptr->centroid()(2);
-#else
                     const double z = side_ptr->vertex_average()(2);
-#endif
                     // include a simple correction velocity for the 4th test only (note that it needs to be a linear
                     // field)
                     double u_corr = (data_time == 3 ? 1.0 : 0.0);
@@ -637,14 +633,14 @@ main(int argc, char** argv)
                 Node& node = **node_it;
 
                 // shrink x
-                IBTK::get_nodal_dof_indices(dX_system.get_dof_map(), &node, 0, component_dofs);
+                dX_system.get_dof_map().dof_indices(&node, component_dofs, 0);
                 TBOX_ASSERT(component_dofs.size() == 1);
                 const double current_x = node(0);
                 const double new_x = node(0) * 0.5625;
                 dX_vec.set(component_dofs[0], new_x - current_x);
 
                 // translate z
-                IBTK::get_nodal_dof_indices(dX_system.get_dof_map(), &node, 2, component_dofs);
+                dX_system.get_dof_map().dof_indices(&node, component_dofs, 2);
                 TBOX_ASSERT(component_dofs.size() == 1);
                 dX_vec.set(component_dofs[0], 2.0);
             }
@@ -677,7 +673,7 @@ main(int argc, char** argv)
                 Node& node = **node_it;
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    IBTK::get_nodal_dof_indices(U_system.get_dof_map(), &node, d, component_dofs);
+                    U_system.get_dof_map().dof_indices(&node, component_dofs, d);
                     TBOX_ASSERT(component_dofs.size() == 1);
                     // NOTE: velocity needs to be evaluated using the shifted coordinates!
                     U_vec.set(component_dofs[0], (d + 1) * (node(d) + 3));

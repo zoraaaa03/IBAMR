@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2024 by the IBAMR developers
+// Copyright (c) 2019 - 2025 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -1392,11 +1392,7 @@ FESurfaceDistanceEvaluator::collectNeighboringPatchElements(int level_number)
             }
 
             // First check the centroids.
-#if LIBMESH_VERSION_LESS_THAN(1, 7, 0)
-            const libMesh::Point c = elem->centroid();
-#else
             const libMesh::Point c = elem->vertex_average();
-#endif
 
             bool centroid_in_patch = true;
             for (unsigned int d = 0; d < NDIM; ++d)

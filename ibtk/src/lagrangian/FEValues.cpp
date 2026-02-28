@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2020 - 2023 by the IBAMR developers
+// Copyright (c) 2020 - 2025 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -157,7 +157,11 @@ FEValues<dim, spacedim>::reinit(const libMesh::Elem* elem)
     // maybe update the quadrature rule:
     if (elem_type != d_last_elem_type)
     {
+#if LIBMESH_VERSION_LESS_THAN(1, 9, 0)
         d_qrule->init(elem_type, elem->p_level());
+#else
+        d_qrule->init(elem_type, elem->p_level(), /*simple_type_only=*/true);
+#endif
     }
 
     //

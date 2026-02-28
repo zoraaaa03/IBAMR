@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2011 - 2023 by the IBAMR developers
+## Copyright (c) 2011 - 2025 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -175,6 +175,7 @@ DIM_DEPENDENT_SOURCES = \
 ../src/utilities/ParallelSet.cpp \
 ../src/utilities/PartitioningBox.cpp \
 ../src/utilities/RefinePatchStrategySet.cpp \
+../src/utilities/RestartCleaner.cpp \
 ../src/utilities/SAMRAIDataCache.cpp \
 ../src/utilities/SecondaryHierarchy.cpp \
 ../src/utilities/SideDataSynchronization.cpp \
@@ -187,7 +188,8 @@ DIM_DEPENDENT_SOURCES = \
 ../src/utilities/StreamableManager.cpp \
 ../src/utilities/box_utilities.cpp \
 ../src/utilities/ibtk_utilities.cpp \
-../src/utilities/muParserCartGridFunction.cpp
+../src/utilities/muParserCartGridFunction.cpp \
+../src/utilities/interpolation_utilities.cpp
 
 if LIBMESH_ENABLED
 DIM_DEPENDENT_SOURCES += \

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2022 by the IBAMR developers
+// Copyright (c) 2019 - 2025 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -183,11 +183,7 @@ main(int argc, char** argv)
             for (auto elem_iter = mesh.active_elements_begin(); elem_iter != mesh.active_elements_end(); ++elem_iter)
             {
                 Elem* elem = *elem_iter;
-#if LIBMESH_VERSION_LESS_THAN(1, 7, 0)
-                const libMesh::Point centroid = elem->centroid();
-#else
                 const libMesh::Point centroid = elem->vertex_average();
-#endif
 #if NDIM == 2
                 if (centroid(1) > 0.0)
                     elem->subdomain_id() = 1;

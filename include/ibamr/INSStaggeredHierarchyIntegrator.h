@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2008 - 2024 by the IBAMR developers
+// Copyright (c) 2008 - 2025 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -317,7 +317,7 @@ protected:
     /*!
      * Project the velocity field following a regridding operation.
      */
-    void regridProjection() override;
+    void regridProjection(const bool initial_time) override;
 
 private:
     /*!

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2022 - 2022 by the IBAMR developers
+// Copyright (c) 2022 - 2025 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -17,6 +17,8 @@
 #define included_IBTK_HierarchyAveragedDataManager
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include <ibtk/SnapshotCache.h>
 #include <ibtk/ibtk_utilities.h>
@@ -236,7 +238,6 @@ private:
     /*
      * Data for tracking mean flow quantities.
      */
-    unsigned int d_num_averaging_cycles = 0;
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_var;
     int d_scratch_idx = IBTK::invalid_index;
     std::string d_mean_refine_type = "CONSERVATIVE_LINEAR_REFINE";

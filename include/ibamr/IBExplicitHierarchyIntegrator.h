@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2024 by the IBAMR developers
+// Copyright (c) 2014 - 2025 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -114,6 +114,16 @@ public:
     initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                   SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
+    /*!
+     * Initialize the PatchHierarchy and initialize any markers from restart.
+     *
+     * Markers cannot be initialized without a patch hierarchy, and
+     * getFromRestart() is called in the constructor before this class has a
+     * patch hierarchy. Hence, this is the earliest the restart marker data can
+     * be used to create the marker points.
+     */
+    void initializePatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
     /*!
      * Get the global number of markers.
      */

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2006 - 2024 by the IBAMR developers
+// Copyright (c) 2006 - 2025 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -206,6 +206,7 @@ public:
      *
      * @deprecated Use registerVelocityDivergenceFunction() instead.
      */
+    IBTK_DEPRECATED("Use registerVelocityDivergenceFunction() instead.")
     void registerFluidSourceFunction(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_fcn);
 
     /*!
@@ -235,6 +236,7 @@ public:
      *
      * @deprecated Use getVelocityDivergenceVariable() instead.
      */
+    IBTK_DEPRECATED("Use getVelocityDivergenceVariable() instead.")
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getFluidSourceVariable() const;
 
     /*!
@@ -435,7 +437,7 @@ protected:
     /*!
      * Pure virtual method to project the velocity field following a regridding operation.
      */
-    virtual void regridProjection() = 0;
+    virtual void regridProjection(const bool initial_time) = 0;
 
     /*!
      * Update the current CFL number (i.e., at the end of a timestep).

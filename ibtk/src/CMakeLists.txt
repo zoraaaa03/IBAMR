@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2020 - 2023 by the IBAMR developers
+## Copyright (c) 2020 - 2025 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -190,6 +190,7 @@ SET(CXX_SRC
   utilities/CopyToRootSchedule.cpp
   utilities/AppInitializer.cpp
   utilities/IBTKInit.cpp
+  utilities/RestartCleaner.cpp
   utilities/SAMRAIDataCache.cpp
   utilities/FixedSizedStream.cpp
   utilities/muParserCartGridFunction.cpp
@@ -215,6 +216,7 @@ SET(CXX_SRC
   utilities/SnapshotCache.cpp
   utilities/snapshot_utilities.cpp
   utilities/HierarchyAveragedDataManager.cpp
+  utilities/interpolation_utilities.cpp
   )
 
 IF(IBAMR_HAVE_LIBMESH)

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2022 by the IBAMR developers
+// Copyright (c) 2019 - 2025 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -129,11 +129,7 @@ main(int argc, char** argv)
             MeshBase::element_iterator el_end = mesh.active_elements_end();
             for (MeshBase::element_iterator el = mesh.active_elements_begin(); el != el_end; ++el)
             {
-#if LIBMESH_VERSION_LESS_THAN(1, 7, 0)
-                const libMesh::Point centroid = (*el)->centroid();
-#else
                 const libMesh::Point centroid = (*el)->vertex_average();
-#endif
                 if (centroid(0) < 0.5)
                 {
                     (*el)->subdomain_id() = 2;
@@ -303,14 +299,14 @@ main(int argc, char** argv)
                 IBTK::Point X;
                 for (unsigned int var_n = 0; var_n < n_vars; ++var_n)
                 {
-                    IBTK::get_nodal_dof_indices(X_dof_map, *node_iter, var_n, X_idxs);
+                    X_dof_map.dof_indices(*node_iter, X_idxs, var_n);
                     X[var_n] = current_X(X_idxs[0]);
                 }
 
                 const auto F = exact_forcing(X);
                 for (unsigned int var_n = 0; var_n < n_vars; ++var_n)
                 {
-                    IBTK::get_nodal_dof_indices(F_dof_map, *node_iter, var_n, F_idxs);
+                    F_dof_map.dof_indices(*node_iter, F_idxs, var_n);
                     current_F.set(F_idxs[0], F[var_n]);
                 }
             }

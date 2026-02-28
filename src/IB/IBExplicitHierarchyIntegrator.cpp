@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2024 by the IBAMR developers
+// Copyright (c) 2014 - 2025 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -254,18 +254,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchySpecialized(const double curren
     if (d_ib_method_ops->hasFluidSources())
     {
         const double data_time = is_bdf_time_stepping_type(d_time_stepping_type) ? new_time : half_time;
-        if (d_enable_logging)
-            plog << d_object_name << "::integrateHierarchy(): computing Lagrangian fluid source strength\n";
-        d_ib_method_ops->computeLagrangianFluidSource(data_time);
-        if (d_enable_logging)
-            plog << d_object_name
-                 << "::integrateHierarchy(): spreading Lagrangian fluid source "
-                    "strength to the Eulerian grid\n";
-        d_hier_pressure_data_ops->setToScalar(d_q_idx, 0.0);
-        // NOTE: This does not correctly treat the case in which the structure
-        // is close to the physical boundary.
-        d_ib_method_ops->spreadFluidSource(
-            d_q_idx, nullptr, getProlongRefineSchedules(d_object_name + "::q"), data_time);
+        computeFluidSources(d_q_idx, data_time);
     }
 
     // Solve the incompressible Navier-Stokes equations.
@@ -513,6 +502,39 @@ IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierar
     return;
 } // initializeHierarchyIntegrator
 
+void
+IBExplicitHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                        Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+{
+    IBHierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
+
+    // Check if there is marker data to load from restart
+    if (RestartManager::getManager()->isFromRestart())
+    {
+        Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+        if (restart_db->keyExists(d_object_name + "::markers"))
+        {
+            if (d_marker_kernel.size() == 0)
+            {
+                TBOX_ERROR(d_object_name
+                           << "::initializePatchHierarchy():\n To use marker points the IB kernel must be specified in "
+                              "the input database via IB_delta_fcn.");
+            }
+            d_markers = new MarkerPatchHierarchy(d_object_name + "::markers", d_hierarchy, {}, {});
+            // from marker restart
+            d_marker_velocities_set = true;
+            if (d_u_half_idx == IBTK::invalid_index)
+            {
+                VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+                d_u_half_idx = var_db->registerClonedPatchDataIndex(getVelocityVariable(), d_u_idx);
+                d_ib_data.setFlag(d_u_half_idx);
+            }
+        }
+    }
+
+    return;
+} // initializePatchHierarchy
+
 std::size_t
 IBExplicitHierarchyIntegrator::getNumberOfMarkers() const
 {
@@ -602,7 +624,6 @@ void
 IBExplicitHierarchyIntegrator::regridHierarchyBeginSpecialized()
 {
     IBHierarchyIntegrator::regridHierarchyBeginSpecialized();
-
     if (d_markers)
     {
         d_regrid_temporary_data = new IBExplicitHierarchyIntegrator::RegridData();
@@ -654,13 +675,6 @@ IBExplicitHierarchyIntegrator::getFromRestart()
     {
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
-
-    if (db->isDatabase(d_object_name + "::markers"))
-    {
-        // MarkerPatchHierarchy will access the restart database itself
-        d_markers = new MarkerPatchHierarchy(d_object_name + "::markers", d_hierarchy, {}, {});
-    }
-
     return;
 } // getFromRestart
 

@@ -567,11 +567,20 @@ protected:
     virtual void initializeVelocity(unsigned int part);
 
     /*!
+     * Get the libMesh restart file name.
+     */
+    virtual std::string getLibMeshRestartFileName(const std::string& restart_dump_dirname,
+                                                  unsigned int time_step_number,
+                                                  unsigned int part,
+                                                  const std::string& extension) const;
+
+    /*!
      * Convenience function to setup system vectors and, if necessary, convert
      * PARALLEL vectors into GHOSTED vectors for a collection of Systems.
      *
      * @deprecated use IBTK::setup_system_vectors instead.
      */
+    IBTK_DEPRECATED("Use IBTK::setup_system_vectors() instead.")
     static void setup_system_vectors(libMesh::EquationSystems* equation_systems,
                                      const std::vector<std::string>& system_names,
                                      const std::vector<std::string>& vector_names);
@@ -582,15 +591,8 @@ protected:
      *
      * @deprecated use IBTK::setup_system_vector instead.
      */
+    IBTK_DEPRECATED("Use IBTK::setup_system_vectors() instead.")
     static void setup_system_vector(libMesh::System& system, const std::string& vector_name);
-
-    /*!
-     * Get the libMesh restart file name.
-     */
-    static std::string libmesh_restart_file_name(const std::string& restart_dump_dirname,
-                                                 unsigned int time_step_number,
-                                                 unsigned int part,
-                                                 const std::string& extension);
 
     /*!
      * Cached input databases.

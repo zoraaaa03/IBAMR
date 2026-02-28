@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2024 by the IBAMR developers
+// Copyright (c) 2019 - 2025 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -229,11 +229,7 @@ main(int argc, char** argv)
             const MeshBase::element_iterator el_end = mesh.active_elements_end();
             for (MeshBase::element_iterator el = mesh.active_elements_begin(); el != el_end; ++el)
             {
-#if LIBMESH_VERSION_LESS_THAN(1, 7, 0)
-                const libMesh::Point centroid = (*el)->centroid();
-#else
                 const libMesh::Point centroid = (*el)->vertex_average();
-#endif
                 if (centroid.norm() > 0.75 * R)
                 {
                     (*el)->subdomain_id() = outer_id;
@@ -252,11 +248,7 @@ main(int argc, char** argv)
             for (MeshBase::element_iterator el = mesh.elements_begin(); el != el_end; ++el)
             {
                 Elem* elem = *el;
-#if LIBMESH_VERSION_LESS_THAN(1, 7, 0)
-                const libMesh::Point centroid = elem->centroid();
-#else
                 const libMesh::Point centroid = elem->vertex_average();
-#endif
 
                 if (centroid(1) > 0.0) elem->set_refinement_flag(Elem::REFINE);
             }
@@ -545,7 +537,7 @@ main(int argc, char** argv)
                 IBTK::Point X_node;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    IBTK::get_nodal_dof_indices(X_system.get_dof_map(), &node, d, X_idxs);
+                    X_system.get_dof_map().dof_indices(&node, X_idxs, d);
                     X_node[d] = X_vec_global[X_idxs[0]];
                 }
 
@@ -560,7 +552,10 @@ main(int argc, char** argv)
         if (input_db->getBoolWithDefault("test_markers", false) && time_integrator->getNumberOfMarkers() == 0)
         {
             add_markers();
+            tbox::pout << "\nAdded new markers before main time loop.\n\n";
         }
+        else if (time_integrator->getNumberOfMarkers() != 0)
+            tbox::pout << "\nMarkers added from restart file.\n\n";
 
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
@@ -673,6 +668,7 @@ main(int argc, char** argv)
             if (iteration_num == 90 && input_db->getBoolWithDefault("test_markers_90", false))
             {
                 add_markers();
+                tbox::pout << "\nAdded new markers at time step 90.\n\n";
             }
 
             // third test for markers: make sure we can reset them to
@@ -680,10 +676,12 @@ main(int argc, char** argv)
             if (iteration_num == 50 && input_db->getBoolWithDefault("test_vanishing_markers", false))
             {
                 time_integrator->setMarkers({});
+                tbox::pout << "\nCleared markers at time step 50.\n\n";
             }
             if (iteration_num == 70 && input_db->getBoolWithDefault("test_vanishing_markers", false))
             {
                 add_markers();
+                tbox::pout << "\nAdded new markers at time step 70.\n\n";
             }
 
             // fourth test for markers: make sure that things are set up
@@ -691,6 +689,7 @@ main(int argc, char** argv)
             if (iteration_num == 75 && input_db->getBoolWithDefault("test_restart_markers", false))
             {
                 time_integrator->setMarkers({});
+                tbox::pout << "Cleared markers at time step 75.\n\n";
             }
         }
 
@@ -727,8 +726,8 @@ main(int argc, char** argv)
                 IBTK::Point U_node;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    IBTK::get_nodal_dof_indices(X_system.get_dof_map(), &node, d, X_idxs);
-                    IBTK::get_nodal_dof_indices(U_system.get_dof_map(), &node, d, U_idxs);
+                    X_system.get_dof_map().dof_indices(&node, X_idxs, d);
+                    U_system.get_dof_map().dof_indices(&node, U_idxs, d);
                     X_node[d] = X_vec_global[X_idxs[0]];
                     U_node[d] = U_vec_global[U_idxs[0]];
                 }

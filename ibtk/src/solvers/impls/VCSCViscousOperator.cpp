@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2017 - 2024 by the IBAMR developers
+// Copyright (c) 2017 - 2025 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -77,7 +77,7 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 VCSCViscousOperator::VCSCViscousOperator(std::string object_name, const bool homogeneous_bc)
-    : SCLaplaceOperator(std::move(object_name), homogeneous_bc)
+    : SCLaplaceOperator(std::move(object_name), nullptr, homogeneous_bc)
 {
     // Setup the operator to use default vector-valued boundary conditions.
     setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, nullptr));

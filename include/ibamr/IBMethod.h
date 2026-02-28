@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2023 by the IBAMR developers
+// Copyright (c) 2014 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -380,6 +380,9 @@ public:
      * @deprecated This method is no longer necessary with the current
      * workload estimation scheme.
      */
+    IBTK_DEPRECATED(
+        "This method is no longer necessary with the current workload "
+        "estimation scheme.")
     void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
                               int workload_data_idx) override;
 
